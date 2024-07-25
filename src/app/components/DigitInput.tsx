@@ -2,16 +2,14 @@ import React, { useRef } from 'react'
 import { Form, Input, Row, Col, InputNumber, InputNumberProps } from 'antd'
 
 import styles from './DigitInput.module.css'
-
-export interface DigitInputDataProps {
-  label: string
-}
+import { IProblem } from '../page'
 
 interface DigitInputProps {
-  digits: DigitInputDataProps[]
+  digits: IProblem[]
+  onChange: (index: number, value: number | null) => void
 }
 
-const DigitInput = ({ digits }: DigitInputProps) => {
+const DigitInput = ({ digits, onChange }: DigitInputProps) => {
   const inputRefs = useRef<HTMLInputElement[]>([])
 
   const handleInputChange =
@@ -20,6 +18,7 @@ const DigitInput = ({ digits }: DigitInputProps) => {
       if (value && index < inputRefs.current.length - 1) {
         inputRefs.current[index + 1].focus()
       }
+      onChange(index, value ? parseInt(value.toString()) : null)
     }
 
   const setInputRef = (el: HTMLInputElement | null, index: number) => {
@@ -37,16 +36,17 @@ const DigitInput = ({ digits }: DigitInputProps) => {
         return (
           <Form.Item
             layout='vertical'
-            label={digit.label}
+            label={digit.c}
             key={index}
             style={{ marginLeft: 12 }}
           >
             <InputNumber
               controls={false}
-              placeholder={digit.label}
+              placeholder={digit.c}
               maxLength={1}
               ref={(el) => setInputRef(el, index)}
               onChange={handleInputChange(index)}
+              value={digit.value}
               style={{
                 width: 64,
                 height: 64,

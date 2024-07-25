@@ -2,14 +2,15 @@ import React, { useRef } from 'react'
 import { Form, Input, Row, Col, InputNumber, InputNumberProps } from 'antd'
 
 import styles from './DigitInput.module.css'
-import { IProblem } from '../page'
+import { IDigit } from '../page'
 
 interface DigitInputProps {
-  digits: IProblem[]
+  digits: IDigit[]
   onChange: (index: number, value: number | null) => void
+  isValid: boolean[]
 }
 
-const DigitInput = ({ digits, onChange }: DigitInputProps) => {
+const DigitInput = ({ digits, onChange, isValid }: DigitInputProps) => {
   const inputRefs = useRef<HTMLInputElement[]>([])
 
   const handleInputChange =
@@ -47,6 +48,8 @@ const DigitInput = ({ digits, onChange }: DigitInputProps) => {
               ref={(el) => setInputRef(el, index)}
               onChange={handleInputChange(index)}
               value={digit.value}
+              status={isValid[index] ? undefined : 'error'}
+              // status='error'
               style={{
                 width: 64,
                 height: 64,

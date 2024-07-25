@@ -2,22 +2,22 @@
 
 import styles from './page.module.css'
 import DigitInput from './components/DigitInput'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
-export interface IProblem {
+export interface IDigit {
   str: string
   c: string
   index: number
   value: number | null
 }
 
-function parseProblem(problemString: string): IProblem[][] {
+function parseProblem(problemString: string): IDigit[][] {
   const strings = problemString.split('_')
   if (strings.length < 3) {
     return []
   }
 
-  const problems: IProblem[][] = []
+  const problems: IDigit[][] = []
 
   for (let str of strings) {
     problems.push(
@@ -32,27 +32,78 @@ function parseProblem(problemString: string): IProblem[][] {
   return problems
 }
 
-export default function Home() {
-  const problem = 'ADA_DI_DIA'
+function isAllFilled(problem: IDigit[][]) {
+  for (let digits of problem) {
+    for (let digit of digits) {
+      if (digit.value === null) {
+        return false
+      }
+    }
+  }
+  return true
+}
 
-  const [state, setState] = useState<IProblem[][]>(parseProblem(problem))
+export default function Home() {
+  const problemString = 'ADA_DI_DIA'
+
+  const [problem, setProblem] = useState<IDigit[][]>(
+    parseProblem(problemString)
+  )
 
   const handleChange =
     (problemIndex: number) => (index: number, value: number | null) => {
-      const newState = { ...state }
-      newState[problemIndex][index].value = value
-      setState(newState)
+      const newProblem = [...problem]
+      newProblem[problemIndex][index].value = value
+      setProblem(newProblem)
     }
+
+  const isValid = useMemo<boolean[][]>(() => {
+    const charValues: { [key: string]: number[] } = {}
+
+    for (let digits of problem) {
+      for (let digit of digits) {
+        if (
+          charValues[digit.c] &&
+          digit.value !== null &&
+          !charValues[digit.c].includes(digit.value)
+        ) {
+          charValues[digit.c].push(digit.value)
+        } else if (digit.value !== null) {
+          charValues[digit.c] = [digit.value]
+        }
+      }
+    }
+
+    return problem.map((digits) =>
+      digits.map((p) => {
+        if (p.value === null) return true
+        if (charValues[p.c] && charValues[p.c].length === 1) return true
+        return false
+      })
+    )
+  }, [problem])
 
   return (
     <main className={styles.main}>
       <div className={styles.container}>
         <div className={styles.problem}>
           <div className={styles.problemCenter}>
-            <DigitInput digits={state[0]} onChange={handleChange(0)} />
-            <DigitInput digits={state[1]} onChange={handleChange(1)} />
+            <DigitInput
+              digits={problem[0]}
+              onChange={handleChange(0)}
+              isValid={isValid[0]}
+            />
+            <DigitInput
+              digits={problem[1]}
+              onChange={handleChange(1)}
+              isValid={isValid[1]}
+            />
             <hr style={{ margin: '24px 0' }} />
-            <DigitInput digits={state[2]} onChange={handleChange(2)} />
+            <DigitInput
+              digits={problem[2]}
+              onChange={handleChange(2)}
+              isValid={isValid[2]}
+            />
           </div>
         </div>
       </div>

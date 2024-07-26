@@ -57,52 +57,92 @@ export default function Home() {
       setProblem(newProblem)
     }
 
-  const isValid = useMemo<boolean[][]>(() => {
+  const isCharValid = useMemo<boolean[][]>(() => {
     const charValues: { [key: string]: number[] } = {}
 
     for (let digits of problem) {
       for (let digit of digits) {
-        if (
-          charValues[digit.c] &&
-          digit.value !== null &&
-          !charValues[digit.c].includes(digit.value)
-        ) {
+        if (digit.value === null) {
+          continue
+        }
+        if (charValues[digit.c] && !charValues[digit.c].includes(digit.value)) {
           charValues[digit.c].push(digit.value)
-        } else if (digit.value !== null) {
+        } else if (!charValues[digit.c]) {
           charValues[digit.c] = [digit.value]
         }
       }
     }
 
+    console.log(problem, charValues)
+
     return problem.map((digits) =>
-      digits.map((p) => {
-        if (p.value === null) return true
-        if (charValues[p.c] && charValues[p.c].length === 1) return true
+      digits.map((d) => {
+        if (d.value === null) return true
+        if (charValues[d.c] && charValues[d.c].length === 1) return true
         return false
       })
     )
   }, [problem])
+
+  const isSumValid = useMemo<boolean[]>(() => {
+    if (!isAllFilled(problem)) {
+      return problem[2].map((d) => true)
+    }
+
+    const digit1Str = problem[0].map((d) => d.value).join('')
+    const digit2Str = problem[1].map((d) => d.value).join('')
+
+    const sumInt = parseInt(digit1Str) + parseInt(digit2Str)
+
+    const sumArr = (sumInt + '').split('').map((x) => parseInt(x))
+
+    return problem[2].map((d, idx) => sumArr[idx] === d.value)
+  }, [problem])
+
+  const isSolved = useMemo<boolean>(() => {
+    if (!isAllFilled(problem)) {
+      return false
+    }
+
+    for (let row of isCharValid) {
+      for (let col of row) {
+        if (!col) {
+          return false
+        }
+      }
+    }
+
+    for (let col of isSumValid) {
+      if (!col) {
+        return false
+      }
+    }
+
+    return true
+  }, [isCharValid, isSumValid])
 
   return (
     <main className={styles.main}>
       <div className={styles.container}>
         <div className={styles.problem}>
           <div className={styles.problemCenter}>
+            <div>{isSolved && <p>You solved this problem!</p>}</div>
             <DigitInput
               digits={problem[0]}
               onChange={handleChange(0)}
-              isValid={isValid[0]}
+              isCharValid={isCharValid[0]}
             />
             <DigitInput
               digits={problem[1]}
               onChange={handleChange(1)}
-              isValid={isValid[1]}
+              isCharValid={isCharValid[1]}
             />
             <hr style={{ margin: '24px 0' }} />
             <DigitInput
               digits={problem[2]}
               onChange={handleChange(2)}
-              isValid={isValid[2]}
+              isCharValid={isCharValid[2]}
+              isSumValid={isSumValid}
             />
           </div>
         </div>

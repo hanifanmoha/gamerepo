@@ -7,19 +7,25 @@ import { IDigit } from '../page'
 interface DigitInputProps {
   digits: IDigit[]
   onChange: (index: number, value: number | null) => void
-  isValid: boolean[]
+  isCharValid: boolean[]
+  isSumValid?: boolean[]
 }
 
-const DigitInput = ({ digits, onChange, isValid }: DigitInputProps) => {
+const DigitInput = ({
+  digits,
+  onChange,
+  isCharValid,
+  isSumValid,
+}: DigitInputProps) => {
   const inputRefs = useRef<HTMLInputElement[]>([])
 
   const handleInputChange =
     (index: number): InputNumberProps['onChange'] =>
     (value) => {
-      if (value && index < inputRefs.current.length - 1) {
+      if (value !== null && index < inputRefs.current.length - 1) {
         inputRefs.current[index + 1].focus()
       }
-      onChange(index, value ? parseInt(value.toString()) : null)
+      onChange(index, value !== null ? parseInt(value.toString()) : null)
     }
 
   const setInputRef = (el: HTMLInputElement | null, index: number) => {
@@ -34,6 +40,10 @@ const DigitInput = ({ digits, onChange, isValid }: DigitInputProps) => {
       style={{ display: 'flex', justifyContent: 'flex-end' }}
     >
       {digits.map((digit, index) => {
+        let isValid = isCharValid[index]
+        if (isSumValid) {
+          isValid = isValid && isSumValid[index]
+        }
         return (
           <Form.Item
             layout='vertical'
@@ -48,7 +58,7 @@ const DigitInput = ({ digits, onChange, isValid }: DigitInputProps) => {
               ref={(el) => setInputRef(el, index)}
               onChange={handleInputChange(index)}
               value={digit.value}
-              status={isValid[index] ? undefined : 'error'}
+              status={isValid ? undefined : 'error'}
               // status='error'
               style={{
                 width: 64,
